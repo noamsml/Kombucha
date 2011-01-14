@@ -93,7 +93,13 @@ class TemplateReader:
 	
 		def p_value_emptytag(p):
 			'value : TAGOPEN TAGSTR posargs namedargs SLASH TAGCLOSE'
-			p[0] = c.Tag(p[2], p[3], p[4], "")
+			p[0] = c.Tag(p[2], p[3], p[4], None)
+		
+		def p_value_fulltag(p):
+			'value : TAGOPEN TAGSTR posargs namedargs TAGCLOSE page TAGOPEN SLASH TAGSTR TAGCLOSE'
+			if p[2] != p[9]:
+				print "DIRE WARNING: MISMATCHED TAGS: %s AND /%s" % (p[2], p[9])
+			p[0] = c.Tag(p[2], p[3], p[4], p[6])
 		
 		def p_posargs_empty(p):
 			'posargs : '
