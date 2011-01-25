@@ -1,4 +1,5 @@
 from cStringIO import StringIO
+import parse
 
 class Content:
 	def __init__(self):
@@ -19,9 +20,15 @@ class NormalString:
 
 class HashVar:
 	def __init__(self, str):
-		self.value = str[1:-1]
+		self.value = str
 	def render(self, state):
 		return state.getvar(self.value)
+
+class Include:
+	def __init__(self, str):
+		self.value = str
+	def render(self, state):
+		return parse.parse_file(self.value).render(state) #OPTIMIZE THIS
 		
 class Tag:
 	def __init__(self, tagname, posarg, hasharg, content):

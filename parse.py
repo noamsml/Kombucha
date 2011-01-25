@@ -2,9 +2,15 @@ import ply.lex as lex
 import ply.yacc as yacc
 import contentmodel as c
 from cStringIO import StringIO
+import os
 
 
-all_tokens = ( 'TAGOPEN', 'TAGCLOSE', 'TAGSTR', 'SLASH', 'NORMSTR', 'HASHVAR', 
+file_parse_cache = {}
+
+KOMBUCHA_PATH = ["."]
+
+
+all_tokens = ( 'TAGOPEN', 'TAGCLOSE', 'TAGSTR', 'SLASH', 'NORMSTR', 'HASHVAR', 'INCLUDED',
 	'TAG_WS', 'EQUALS', 'QUOTE', 'NONESC', 'ESC', 'STRLIT', 'INTLIT' )
 	
 def lexer_init():
@@ -26,7 +32,7 @@ def lexer_init():
 			
 	t_intag_SLASH = r'/'
 	t_HASHVAR = r'@[a-zA-Z0-9_]+@'
-	
+	t_INCLUDED = r'%[-a-zA-Z0-9_/.]+%' #IMPROVE THIS --NOAM
 	
 	def t_intag_TAG_WS(t):
 		r'[ \t]+'
@@ -60,9 +66,11 @@ def lexer_init():
 		r'[+-]?[0-9]+'
 		t.value = int(t.value)
 		return t
+		
+	
 	
 	t_intag_TAGSTR = r'[a-zA-Z_][a-zA-Z0-9_]*'
-	t_NORMSTR = r'(\<[^@]|\<$|[^<@])+'
+	t_NORMSTR = r'(\<[^@]|\<$|[^<@%])+'
 	
 	t_intag_EQUALS = "="
 	
@@ -85,8 +93,12 @@ def parser_init():
 	
 	def p_value_hashvar(p):
 		'value : HASHVAR'
-		p[0] = c.HashVar(p[1])
-
+		p[0] = c.HashVar(p[1][1:-1])
+	
+	def p_value_include(p):
+		'value : INCLUDED'
+		p[0] = c.Include(p[1][1:-1])
+	
 	def p_value_emptytag(p):
 		'value : TAGOPEN TAGSTR posargs namedargs SLASH TAGCLOSE'
 		p[0] = c.Tag(p[2], p[3], p[4], None)
@@ -127,7 +139,20 @@ def parse_string(string):
 	return parser.parse(string, lexer=tokenizer)
 	
 def parse_file(fname):
-	return parser.parse(open(fname).read(), lexer=tokenizer)
+	fname = resolve_file(fname)
+	if fname not in file_parse_cache:
+		file_parse_cache[fname] =  parser.parse(open(fname).read(), lexer=tokenizer)
+	return file_parse_cache[fname]
+	
+def resolve_file(fname):
+	if fname.find("/") != -1:
+		return fname
+	else:
+		fname += ".kbc"
+		for elem in KOMBUCHA_PATH:
+			fn = os.path.join(elem, fname)
+			if os.path.exists(fn):
+				return fn
 	
 
 
