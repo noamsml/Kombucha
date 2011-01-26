@@ -101,7 +101,7 @@ def parser_init():
 	
 	def p_value_emptytag(p):
 		'value : TAGOPEN TAGSTR posargs namedargs SLASH TAGCLOSE'
-		p[0] = c.Tag(p[2], p[3], p[4], None)
+		p[0] = c.Tag(p[2], p[3], p[4], c.Null())
 	
 	def p_value_fulltag(p):
 		'value : TAGOPEN TAGSTR posargs namedargs TAGCLOSE page TAGOPEN SLASH TAGSTR TAGCLOSE'

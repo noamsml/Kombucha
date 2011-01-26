@@ -37,7 +37,7 @@ class Tag:
 		self.hasharg = hasharg
 		self.content = content
 	def render(self, state):
-		return self.state.runfunc(tagname, posarg, hasharg, content)
+		return state.runfunc(self.tagname, self.posarg, self.hasharg, self.content)
 
 
 
@@ -46,3 +46,11 @@ class Value:
 		self.val = val
 	def resolve(self, state):
 		return self.val
+
+
+class NullContent:
+	def render(self, state):
+		return ""
+		
+
+Null = NullContent()
